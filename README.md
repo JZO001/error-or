@@ -17,140 +17,133 @@
 </div>
 
 - [Give it a star ⭐!](#give-it-a-star-)
-- [Getting Started](#getting-started)
-  - [Single Error](#single-error)
-    - [This 👇🏽](#this-)
-    - [Turns into this 👇🏽](#turns-into-this-)
-    - [This 👇🏽](#this--1)
-    - [Turns into this 👇🏽](#turns-into-this--1)
-  - [Multiple Errors](#multiple-errors)
-- [A more practical example](#a-more-practical-example)
-- [Dropping the exceptions throwing logic](#dropping-the-exceptions-throwing-logic)
-- [Usage](#usage)
-  - [Creating an `ErrorOr<result>`](#creating-an-errororresult)
-    - [From Value, using implicit conversion](#from-value-using-implicit-conversion)
-    - [From Value, using `ErrorOrFactory.From`](#from-value-using-errororfactoryfrom)
-    - [From Single Error](#from-single-error)
-    - [From List of Errors, using implicit conversion](#from-list-of-errors-using-implicit-conversion)
-    - [From List of Errors, using `From`](#from-list-of-errors-using-from)
-  - [Checking if the `ErrorOr<result>` is an error](#checking-if-the-errororresult-is-an-error)
-  - [Accessing the `ErrorOr<result>` result](#accessing-the-errororresult-result)
-    - [Accessing the Value (`result.Value`)](#accessing-the-value-resultvalue)
-    - [Accessing the List of Errors (`result.Errors`)](#accessing-the-list-of-errors-resulterrors)
-    - [Accessing the First Error (`result.FirstError`)](#accessing-the-first-error-resultfirsterror)
-    - [Accessing the Errors or an empty list (`result.ErrorsOrEmptyList`)](#accessing-the-errors-or-an-empty-list-resulterrorsoremptylist)
-  - [Performing actions based on the `ErrorOr<result>` result](#performing-actions-based-on-the-errororresult-result)
-    - [`Match` / `MatchAsync`](#match--matchasync)
-    - [`MatchFirst` / `MatchFirstAsync`](#matchfirst--matchfirstasync)
-    - [`Switch` / `SwitchAsync`](#switch--switchasync)
-    - [`SwitchFirst` / `SwitchFirstAsync`](#switchfirst--switchfirstasync)
-  - [Error Types](#error-types)
-    - [Built-in Error Types](#built-in-error-types)
-    - [Custom error types](#custom-error-types)
-    - [Why would I want to categorize my errors?](#why-would-i-want-to-categorize-my-errors)
-  - [Built in result types](#built-in-result-types)
-- [How Is This Different From `OneOf<T0, T1>` or `FluentResults`?](#how-is-this-different-from-oneoft0-t1-or-fluentresults)
-- [Contribution](#contribution)
-- [Credits](#credits)
-- [License](#license)
+- [Getting Started 🏃](#getting-started-)
+  - [Replace throwing exceptions with `ErrorOr<T>`](#replace-throwing-exceptions-with-errorort)
+  - [Support For Multiple Errors](#support-for-multiple-errors)
+  - [Various Functional Methods and Extension Methods](#various-functional-methods-and-extension-methods)
+    - [Real world example](#real-world-example)
+    - [Simple Example with intermediate steps](#simple-example-with-intermediate-steps)
+      - [No Failure](#no-failure)
+      - [Failure](#failure)
+- [Creating an `ErrorOr` instance](#creating-an-erroror-instance)
+  - [Using implicit conversion](#using-implicit-conversion)
+  - [Using The `ErrorOrFactory`](#using-the-errororfactory)
+  - [Using The `ToErrorOr` Extension Method](#using-the-toerroror-extension-method)
+- [Properties](#properties)
+  - [`IsError`](#iserror)
+  - [`Value`](#value)
+  - [`Errors`](#errors)
+  - [`FirstError`](#firsterror)
+  - [`ErrorsOrEmptyList`](#errorsoremptylist)
+- [Methods](#methods)
+  - [`Match`](#match)
+    - [`Match`](#match-1)
+    - [`MatchAsync`](#matchasync)
+    - [`MatchFirst`](#matchfirst)
+    - [`MatchFirstAsync`](#matchfirstasync)
+  - [`Switch`](#switch)
+    - [`Switch`](#switch-1)
+    - [`SwitchAsync`](#switchasync)
+    - [`SwitchFirst`](#switchfirst)
+    - [`SwitchFirstAsync`](#switchfirstasync)
+  - [`Then`](#then)
+    - [`Then`](#then-1)
+    - [`ThenAsync`](#thenasync)
+    - [`ThenDo` and `ThenDoAsync`](#thendo-and-thendoasync)
+    - [Mixing `Then`, `ThenDo`, `ThenAsync`, `ThenDoAsync`](#mixing-then-thendo-thenasync-thendoasync)
+  - [`FailIf`](#failif)
+  - [`Else`](#else)
+    - [`Else`](#else-1)
+    - [`ElseAsync`](#elseasync)
+- [Mixing Features (`Then`, `FailIf`, `Else`, `Switch`, `Match`)](#mixing-features-then-failif-else-switch-match)
+- [Error Types](#error-types)
+  - [Built in error types](#built-in-error-types)
+  - [Custom error types](#custom-error-types)
+- [Built in result types (`Result.Success`, ..)](#built-in-result-types-resultsuccess-)
+- [Organizing Errors](#organizing-errors)
+- [Mediator + FluentValidation + `ErrorOr` 🤝](#mediator--fluentvalidation--erroror-)
+- [Contribution 🤲](#contribution-)
+- [Credits 🙏](#credits-)
+- [License 🪪](#license-)
 
 # Give it a star ⭐!
 
 Loving it? Show your support by giving this project a star!
 
-# Getting Started
+# Getting Started 🏃
 
-## Single Error
+## Replace throwing exceptions with `ErrorOr<T>`
 
-### This 👇🏽
+This 👇
 
-```csharp
-User GetUser(Guid id = default)
+```cs
+public float Divide(int a, int b)
 {
-    if (id == default)
+    if (b == 0)
     {
-        throw new ValidationException("Id is required");
+        throw new Exception("Cannot divide by zero");
     }
 
-    return new User(Name: "Amichai");
+    return a / b;
 }
-```
 
-```csharp
 try
 {
-    var user = GetUser();
-    Console.WriteLine(user.Name);
+    var result = Divide(4, 2);
+    Console.WriteLine(result * 2); // 4
 }
 catch (Exception e)
 {
     Console.WriteLine(e.Message);
+    return;
 }
 ```
 
-### Turns into this 👇🏽
+Turns into this 👇
 
-```csharp
-ErrorOr<User> GetUser(Guid id = default)
+```cs
+public ErrorOr<float> Divide(int a, int b)
 {
-    if (id == default)
+    if (b == 0)
     {
-        return Error.Validation("Id is required");
+        return Error.Unexpected(description: "Cannot divide by zero");
     }
 
-    return new User(Name: "Amichai");
+    return a / b;
 }
-```
 
-```csharp
-errorOrUser.SwitchFirst(
-    user => Console.WriteLine(user.Name),
-    error => Console.WriteLine(error.Description));
-```
+var result = Divide(4, 2);
 
-### This 👇🏽
-
-```csharp
-void AddUser(User user)
+if (result.IsError)
 {
-    if (!_users.TryAdd(user))
-    {
-        throw new Exception("Failed to add user");
-    }
+    Console.WriteLine(result.FirstError.Description);
+    return;
 }
+
+Console.WriteLine(result.Value * 2); // 4
 ```
 
-### Turns into this 👇🏽
+Or, using [Then](#then--thenasync)/[Else](#else--elseasync) and [Switch](#switch--switchasync)/[Match](#match--matchasync), you can do this 👇
 
-```csharp
-ErrorOr<Created> AddUser(User user)
-{
-    if (!_users.TryAdd(user))
-    {
-        return Error.Failure(description: "Failed to add user");
-    }
+```cs
 
-    return Result.Created;
-}
+Divide(4, 2)
+    .Then(val => val * 2)
+    .SwitchFirst(
+        onValue: Console.WriteLine, // 4
+        onFirstError: error => Console.WriteLine(error.Description));
 ```
 
-## Multiple Errors
+## Support For Multiple Errors
 
 Internally, the `ErrorOr` object has a list of `Error`s, so if you have multiple errors, you don't need to compromise and have only the first one.
 
-```csharp
-public class User
+```cs
+public class User(string _name)
 {
-    public string Name { get; }
-
-    private User(string name)
-    {
-        Name = name;
-    }
-
     public static ErrorOr<User> Create(string name)
     {
-        List<Error> errors = new();
+        List<Error> errors = [];
 
         if (name.Length < 2)
         {
@@ -172,350 +165,434 @@ public class User
             return errors;
         }
 
-        return new User(firstName, lastName);
+        return new User(name);
     }
 }
 ```
 
-```csharp
-public async Task<ErrorOr<User>> CreateUserAsync(string name)
-{
-    if (await _userRepository.GetAsync(name) is User user)
-    {
-        return Error.Conflict("User already exists");
-    }
+## Various Functional Methods and Extension Methods
 
-    var errorOrUser = User.Create("Amichai");
+The `ErrorOr` object has a variety of methods that allow you to work with it in a functional way.
 
-    if (errorOrUser.IsError)
-    {
-        return errorOrUser.Errors;
-    }
+This allows you to chain methods together, and handle the result in a clean and concise way.
 
-    await _userRepository.AddAsync(errorOrUser.Value);
-    return errorOrUser.Value;
-}
+### Real world example
+
+```cs
+return await _userRepository.GetByIdAsync(id)
+    .Then(user => user.IncrementAge()
+        .Then(success => user)
+        .Else(errors => Error.Unexpected("Not expected to fail")))
+    .FailIf(user => !user.IsOverAge(18), UserErrors.UnderAge)
+    .ThenDo(user => _logger.LogInformation($"User {user.Id} incremented age to {user.Age}"))
+    .ThenAsync(user => _userRepository.UpdateAsync(user))
+    .Match(
+        _ => NoContent(),
+        errors => errors.ToActionResult());
 ```
 
-# A more practical example
+### Simple Example with intermediate steps
 
-```csharp
-[HttpGet("{id:guid}")]
-public async Task<IActionResult> GetUser(Guid Id)
-{
-    var getUserQuery = new GetUserQuery(Id);
+#### No Failure
 
-    ErrorOr<User> getUserResponse = await _mediator.Send(getUserQuery);
-
-    return getUserResponse.Match(
-        user => Ok(_mapper.Map<UserResponse>(user)),
-        errors => ValidationProblem(errors.ToModelStateDictionary()));
-}
-```
-A nice approach, is creating a static class with the expected errors. For example:
-
-```csharp
-public static partial class Errors
-{
-    public static class User
-    {
-        public static Error NotFound = Error.NotFound("User.NotFound", "User not found.");
-        public static Error DuplicateEmail = Error.Conflict("User.DuplicateEmail", "User with given email already exists.");
-    }
-}
+```cs
+ErrorOr<string> foo = await "2".ToErrorOr()
+    .Then(int.Parse) // 2
+    .FailIf(val => val > 2, Error.Validation(description: $"{val} is too big") // 2
+    .ThenDoAsync(Task.Delay) // Sleep for 2 milliseconds
+    .ThenDo(val => Console.WriteLine($"Finished waiting {val} milliseconds.")) // Finished waiting 2 milliseconds.
+    .ThenAsync(val => Task.FromResult(val * 2)) // 4
+    .Then(val => $"The result is {val}") // "The result is 4"
+    .Else(errors => Error.Unexpected(description: "Yikes")) // "The result is 4"
+    .MatchFirst(
+        value => value, // "The result is 4"
+        firstError => $"An error occurred: {firstError.Description}");
 ```
 
-Which can later be used as following
+#### Failure
 
-```csharp
-
-User newUser = ..;
-if (await _userRepository.GetByEmailAsync(newUser.email) is not null)
-{
-    return Errors.User.DuplicateEmail;
-}
-
-await _userRepository.AddAsync(newUser);
-return newUser;
+```cs
+ErrorOr<string> foo = await "5".ToErrorOr()
+    .Then(int.Parse) // 5
+    .FailIf(val => val > 2, Error.Validation(description: $"{val} is too big") // Error.Validation()
+    .ThenDoAsync(Task.Delay) // Error.Validation()
+    .ThenDo(val => Console.WriteLine($"Finished waiting {val} milliseconds.")) // Error.Validation()
+    .ThenAsync(val => Task.FromResult(val * 2)) // Error.Validation()
+    .Then(val => $"The result is {val}") // Error.Validation()
+    .Else(errors => Error.Unexpected(description: "Yikes")) // Error.Unexpected()
+    .MatchFirst(
+        value => value,
+        firstError => $"An error occurred: {firstError.Description}"); // An error occurred: Yikes
 ```
 
-Then, in an outer layer, you can use the `Error.Match` method to return the appropriate HTTP status code.
 
-```csharp
-return createUserResult.MatchFirst(
-    user => CreatedAtRoute("GetUser", new { id = user.Id }, user),
-    error => error is Errors.User.DuplicateEmail ? Conflict() : InternalServerError());
-```
+# Creating an `ErrorOr` instance
 
-# Dropping the exceptions throwing logic
-
-You have validation logic such as `MediatR` behaviors, you can drop the exceptions throwing logic and simply return a list of errors from the pipeline behavior
-
-```csharp
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
-    where TResponse : IErrorOr
-{
-    private readonly IValidator<TRequest>? _validator;
-
-    public ValidationBehavior(IValidator<TRequest>? validator = null)
-    {
-        _validator = validator;
-    }
-
-    public async Task<TResponse> Handle(
-        TRequest request,
-        RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken)
-    {
-        if (_validator == null)
-        {
-            return await next();
-        }
-
-        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
-
-        if (validationResult.IsValid)
-        {
-            return await next();
-        }
-
-        return TryCreateResponseFromErrors(validationResult.Errors, out var response)
-            ? response
-            : throw new ValidationException(validationResult.Errors);
-    }
-
-    private static bool TryCreateResponseFromErrors(List<ValidationFailure> validationFailures, out TResponse response)
-    {
-        List<Error> errors = validationFailures.ConvertAll(x => Error.Validation(
-                code: x.PropertyName,
-                description: x.ErrorMessage));
-
-        response = (TResponse?)typeof(TResponse)
-            .GetMethod(
-                name: nameof(ErrorOr<object>.From),
-                bindingAttr: BindingFlags.Static | BindingFlags.Public,
-                types: new[] { typeof(List<Error>) })?
-            .Invoke(null, new[] { errors })!;
-
-        return response is not null;
-    }
-}
-```
-
-# Usage
-
-## Creating an `ErrorOr<result>`
+## Using implicit conversion
 
 There are implicit converters from `TResult`, `Error`, `List<Error>` to `ErrorOr<TResult>`
 
-### From Value, using implicit conversion
-
-```csharp
+```cs
 ErrorOr<int> result = 5;
+ErrorOr<int> result = Error.Unexpected();
+ErrorOr<int> result = [Error.Validation(), Error.Validation()];
 ```
 
-```csharp
-public ErrorOr<int> GetValue()
+```cs
+public ErrorOr<int> IntToErrorOr()
 {
     return 5;
 }
 ```
 
-### From Value, using `ErrorOrFactory.From`
-
-```csharp
-ErrorOr<int> result = ErrorOrFactory.From(5);
+```cs
+public ErrorOr<int> SingleErrorToErrorOr()
+{
+    return Error.Unexpected();
+}
 ```
 
-```csharp
+```cs
+public ErrorOr<int> MultipleErrorsToErrorOr()
+{
+    return [
+        Error.Validation(description: "Invalid Name"),
+        Error.Validation(description: "Invalid Last Name")
+    ];
+}
+```
+
+## Using The `ErrorOrFactory`
+
+```cs
+ErrorOr<int> result = ErrorOrFactory.From(5);
+ErrorOr<int> result = ErrorOrFactory.From<int>(Error.Unexpected());
+ErrorOr<int> result = ErrorOrFactory.From<int>([Error.Validation(), Error.Validation()]);
+```
+
+```cs
 public ErrorOr<int> GetValue()
 {
     return ErrorOrFactory.From(5);
 }
 ```
 
-### From Single Error
-
-```csharp
-ErrorOr<int> result = Error.Unexpected();
-```
-
-```csharp
-public ErrorOr<int> GetValue()
+```cs
+public ErrorOr<int> SingleErrorToErrorOr()
 {
-    return Error.Unexpected();
+    return ErrorOrFactory.From<int>(Error.Unexpected());
 }
 ```
 
-### From List of Errors, using implicit conversion
-
-```csharp
-ErrorOr<int> result = new List<Error> { Error.Unexpected(), Error.Validation() };
-```
-
-```csharp
-public ErrorOr<int> GetValue()
+```cs
+public ErrorOr<int> MultipleErrorsToErrorOr()
 {
-    return new List<Error>
-    {
-        Error.Unexpected(),
-        Error.Validation()
-    };
+    return ErrorOrFactory.From([
+        Error.Validation(description: "Invalid Name"),
+        Error.Validation(description: "Invalid Last Name")
+    ]);
 }
 ```
 
-### From List of Errors, using `From`
+## Using The `ToErrorOr` Extension Method
 
-```csharp
-ErrorOr<int> result = ErrorOr<int>.From(new List<Error> { Error.Unexpected(), Error.Validation() });
+```cs
+ErrorOr<int> result = 5.ToErrorOr();
+ErrorOr<int> result = Error.Unexpected().ToErrorOr<int>();
+ErrorOr<int> result = new[] { Error.Validation(), Error.Validation() }.ToErrorOr<int>();
 ```
 
-```csharp
-public ErrorOr<int> GetValue()
+# Properties
+
+## `IsError`
+
+```cs
+ErrorOr<int> result = User.Create();
+
+if (result.IsError)
 {
-    return ErrorOr<int>.From(List<Error>
-    {
-        Error.Unexpected(),
-        Error.Validation()
-    };
+    // the result contains one or more errors
 }
 ```
 
-## Checking if the `ErrorOr<result>` is an error
+## `Value`
 
-```csharp
-if (errorOrResult.IsError)
+```cs
+ErrorOr<int> result = User.Create();
+
+if (!result.IsError) // the result contains a value
 {
-    // errorOrResult is an error
+    Console.WriteLine(result.Value);
 }
 ```
 
-## Accessing the `ErrorOr<result>` result
+## `Errors`
 
-### Accessing the Value (`result.Value`)
+```cs
+ErrorOr<int> result = User.Create();
 
-```csharp
-ErrorOr<int> result = 5;
-
-var value = result.Value;
+if (result.IsError)
+{
+    result.Errors // contains the list of errors that occurred
+        .ForEach(error => Console.WriteLine(error.Description));
+}
 ```
 
-### Accessing the List of Errors (`result.Errors`)
+## `FirstError`
 
-```csharp
-ErrorOr<int> result = new List<Error> { Error.Unexpected(), Error.Validation() };
+```cs
+ErrorOr<int> result = User.Create();
 
-List<Error> value = result.Errors; // List<Error> { Error.Unexpected(), Error.Validation() }
+if (result.IsError)
+{
+    var firstError = result.FirstError; // only the first error that occurred
+    Console.WriteLine(firstError == result.Errors[0]); // true
+}
 ```
 
-```csharp
-ErrorOr<int> result = Error.Unexpected();
+## `ErrorsOrEmptyList`
 
-List<Error> value = result.Errors; // List<Error> { Error.Unexpected() }
+```cs
+ErrorOr<int> result = User.Create();
+
+if (result.IsError)
+{
+    result.ErrorsOrEmptyList // List<Error> { /* one or more errors */  }
+    return;
+}
+
+result.ErrorsOrEmptyList // List<Error> { }
 ```
 
-### Accessing the First Error (`result.FirstError`)
+# Methods
 
-```csharp
-ErrorOr<int> result = new List<Error> { Error.Unexpected(), Error.Validation() };
+## `Match`
 
-Error value = result.FirstError; // Error.Unexpected()
-```
+The `Match` method receives two functions, `onValue` and `onError`, `onValue` will be invoked if the result is success, and `onError` is invoked if the result is an error.
 
-```csharp
-ErrorOr<int> result = Error.Unexpected();
+### `Match`
 
-Error value = result.FirstError; // Error.Unexpected()
-```
-
-### Accessing the Errors or an empty list (`result.ErrorsOrEmptyList`)
-
-```csharp
-ErrorOr<int> result = new List<Error> { Error.Unexpected(), Error.Validation() };
-
-List<Error> errors = result.ErrorsOrEmptyList; // List<Error> { Error.Unexpected(), Error.Validation() }
-```
-
-```csharp
-ErrorOr<int> result = ErrorOrFactory.From(5);
-
-List<Error> errors = result.ErrorsOrEmptyList; // List<Error> { }
-```
-
-## Performing actions based on the `ErrorOr<result>` result
-
-### `Match` / `MatchAsync`
-
-Actions that return a value on the value or list of errors
-
-```csharp
-string foo = errorOrString.Match(
+```cs
+string foo = result.Match(
     value => value,
     errors => $"{errors.Count} errors occurred.");
 ```
 
-```csharp
-string foo = await errorOrString.MatchAsync(
+### `MatchAsync`
+
+```cs
+string foo = await result.MatchAsync(
     value => Task.FromResult(value),
     errors => Task.FromResult($"{errors.Count} errors occurred."));
 ```
 
-### `MatchFirst` / `MatchFirstAsync`
+### `MatchFirst`
 
-Actions that return a value on the value or first error
+The `MatchFirst` method receives two functions, `onValue` and `onError`, `onValue` will be invoked if the result is success, and `onError` is invoked if the result is an error.
 
-```csharp
-string foo = errorOrString.MatchFirst(
+Unlike `Match`, if the state is error, `MatchFirst`'s `onError` function receives only the first error that occurred, not the entire list of errors.
+
+
+```cs
+string foo = result.MatchFirst(
     value => value,
     firstError => firstError.Description);
 ```
 
-```csharp
-string foo = await errorOrString.MatchFirstAsync(
+### `MatchFirstAsync`
+
+```cs
+string foo = await result.MatchFirstAsync(
     value => Task.FromResult(value),
     firstError => Task.FromResult(firstError.Description));
 ```
 
-### `Switch` / `SwitchAsync`
+## `Switch`
 
-Actions that don't return a value on the value or list of errors
+The `Switch` method receives two actions, `onValue` and `onError`, `onValue` will be invoked if the result is success, and `onError` is invoked if the result is an error.
 
-```csharp
-errorOrString.Switch(
+### `Switch`
+
+```cs
+result.Switch(
     value => Console.WriteLine(value),
     errors => Console.WriteLine($"{errors.Count} errors occurred."));
 ```
 
-```csharp
-await errorOrString.SwitchAsync(
+### `SwitchAsync`
+
+```cs
+await result.SwitchAsync(
     value => { Console.WriteLine(value); return Task.CompletedTask; },
     errors => { Console.WriteLine($"{errors.Count} errors occurred."); return Task.CompletedTask; });
 ```
 
-### `SwitchFirst` / `SwitchFirstAsync`
+### `SwitchFirst`
 
-Actions that don't return a value on the value or first error
+The `SwitchFirst` method receives two actions, `onValue` and `onError`, `onValue` will be invoked if the result is success, and `onError` is invoked if the result is an error.
 
-```csharp
-errorOrString.SwitchFirst(
+Unlike `Switch`, if the state is error, `SwitchFirst`'s `onError` function receives only the first error that occurred, not the entire list of errors.
+
+```cs
+result.SwitchFirst(
     value => Console.WriteLine(value),
     firstError => Console.WriteLine(firstError.Description));
 ```
 
-```csharp
-await errorOrString.SwitchFirstAsync(
+###  `SwitchFirstAsync`
+
+```cs
+await result.SwitchFirstAsync(
     value => { Console.WriteLine(value); return Task.CompletedTask; },
     firstError => { Console.WriteLine(firstError.Description); return Task.CompletedTask; });
 ```
 
-## Error Types
+## `Then`
 
-### Built-in Error Types
+### `Then`
 
-Each error has a type out of the following options:
+`Then` receives a function, and invokes it only if the result is not an error.
 
-```csharp
+```cs
+ErrorOr<int> foo = result
+    .Then(val => val * 2);
+```
+
+Multiple `Then` methods can be chained together.
+
+```cs
+ErrorOr<string> foo = result
+    .Then(val => val * 2)
+    .Then(val => $"The result is {val}");
+```
+
+If any of the methods return an error, the chain will break and the errors will be returned.
+
+```cs
+ErrorOr<int> Foo() => Error.Unexpected();
+
+ErrorOr<string> foo = result
+    .Then(val => val * 2)
+    .Then(_ => GetAnError())
+    .Then(val => $"The result is {val}") // this function will not be invoked
+    .Then(val => $"The result is {val}"); // this function will not be invoked
+```
+
+### `ThenAsync`
+
+`ThenAsync` receives an asynchronous function, and invokes it only if the result is not an error.
+
+```cs
+ErrorOr<string> foo = await result
+    .ThenAsync(val => DoSomethingAsync(val))
+    .ThenAsync(val => DoSomethingElseAsync($"The result is {val}"));
+```
+
+### `ThenDo` and `ThenDoAsync`
+
+`ThenDo` and `ThenDoAsync` are similar to `Then` and `ThenAsync`, but instead of invoking a function that returns a value, they invoke an action.
+
+```cs
+ErrorOr<string> foo = result
+    .ThenDo(val => Console.WriteLine(val))
+    .ThenDo(val => Console.WriteLine($"The result is {val}"));
+```
+
+```cs
+ErrorOr<string> foo = await result
+    .ThenDoAsync(val => Task.Delay(val))
+    .ThenDo(val => Console.WriteLine($"Finsihed waiting {val} seconds."))
+    .ThenDoAsync(val => Task.FromResult(val * 2))
+    .ThenDo(val => $"The result is {val}");
+```
+
+### Mixing `Then`, `ThenDo`, `ThenAsync`, `ThenDoAsync`
+
+You can mix and match `Then`, `ThenDo`, `ThenAsync`, `ThenDoAsync` methods.
+
+```cs
+ErrorOr<string> foo = await result
+    .ThenDoAsync(val => Task.Delay(val))
+    .Then(val => val * 2)
+    .ThenAsync(val => DoSomethingAsync(val))
+    .ThenDo(val => Console.WriteLine($"Finsihed waiting {val} seconds."))
+    .ThenAsync(val => Task.FromResult(val * 2))
+    .Then(val => $"The result is {val}");
+```
+
+## `FailIf`
+
+`FailIf` receives a predicate and an error. If the predicate is true, `FailIf` will return the error. Otherwise, it will return the value of the result.
+
+```cs
+ErrorOr<int> foo = result
+    .FailIf(val => val > 2, Error.Validation(description: $"{val} is too big"));
+```
+
+Once an error is returned, the chain will break and the error will be returned.
+
+```cs
+var result = "2".ToErrorOr()
+    .Then(int.Parse) // 2
+    .FailIf(val => val > 1, Error.Validation(description: $"{val} is too big") // validation error
+    .Then(num => num * 2) // this function will not be invoked
+    .Then(num => num * 2) // this function will not be invoked
+```
+
+## `Else`
+
+`Else` receives a value or a function. If the result is an error, `Else` will return the value or invoke the function. Otherwise, it will return the value of the result.
+
+### `Else`
+
+```cs
+ErrorOr<string> foo = result
+    .Else("fallback value");
+```
+
+```cs
+ErrorOr<string> foo = result
+    .Else(errors => $"{errors.Count} errors occurred.");
+```
+
+### `ElseAsync`
+
+```cs
+ErrorOr<string> foo = await result
+    .ElseAsync(Task.FromResult("fallback value"));
+```
+
+```cs
+ErrorOr<string> foo = await result
+    .ElseAsync(errors => Task.FromResult($"{errors.Count} errors occurred."));
+```
+
+# Mixing Features (`Then`, `FailIf`, `Else`, `Switch`, `Match`)
+
+You can mix `Then`, `FailIf`, `Else`, `Switch` and `Match` methods together.
+
+```cs
+ErrorOr<string> foo = await result
+    .ThenDoAsync(val => Task.Delay(val))
+    .FailIf(val => val > 2, Error.Validation(description: $"{val} is too big"))
+    .ThenDo(val => Console.WriteLine($"Finished waiting {val} seconds."))
+    .ThenAsync(val => Task.FromResult(val * 2))
+    .Then(val => $"The result is {val}")
+    .Else(errors => Error.Unexpected())
+    .MatchFirst(
+        value => value,
+        firstError => $"An error occurred: {firstError.Description}");
+```
+
+# Error Types
+
+Each `Error` instance has a `Type` property, which is an enum value that represents the type of the error.
+
+## Built in error types
+
+The following error types are built in:
+
+```cs
 public enum ErrorType
 {
     Failure,
@@ -523,28 +600,37 @@ public enum ErrorType
     Validation,
     Conflict,
     NotFound,
+    Unauthorized,
+    Forbidden,
 }
 ```
 
-Creating a new Error instance is done using one of the following static methods:
+Each error type has a static method that creates an error of that type. For example:
 
-```csharp
-public static Error Error.Failure(string code, string description);
-public static Error Error.Unexpected(string code, string description);
-public static Error Error.Validation(string code, string description);
-public static Error Error.Conflict(string code, string description);
-public static Error Error.NotFound(string code, string description);
+```cs
+var error = Error.NotFound();
 ```
 
+optionally, you can pass a code, description and metadata to the error:
+
+```cs
+var error = Error.Unexpected(
+    code: "User.ShouldNeverHappen",
+    description: "A user error that should never happen",
+    metadata: new Dictionary<string, object>
+    {
+        { "user", user },
+    });
+```
 The `ErrorType` enum is a good way to categorize errors.
 
-### Custom error types
+## Custom error types
 
 You can create your own error types if you would like to categorize your errors differently.
 
 A custom error type can be created with the `Custom` static method
 
-```csharp
+```cs
 public static class MyErrorTypes
 {
     const int ShouldNeverHappen = 12;
@@ -558,7 +644,7 @@ var error = Error.Custom(
 
 You can use the `Error.NumericType` method to retrieve the numeric type of the error.
 
-```csharp
+```cs
 var errorMessage = Error.NumericType switch
 {
     MyErrorType.ShouldNeverHappen => "Consider replacing dev team",
@@ -566,17 +652,11 @@ var errorMessage = Error.NumericType switch
 };
 ```
 
-### Why would I want to categorize my errors?
-
-If you are developing a web API, it can be useful to be able to associate the type of error that occurred to the HTTP status code that should be returned.
-
-If you don't want to categorize your errors, simply use the `Error.Failure` static method.
-
-## Built in result types
+# Built in result types (`Result.Success`, ..)
 
 There are a few built in result types:
 
-```csharp
+```cs
 ErrorOr<Success> result = Result.Success;
 ErrorOr<Created> result = Result.Created;
 ErrorOr<Updated> result = Result.Updated;
@@ -585,13 +665,13 @@ ErrorOr<Deleted> result = Result.Deleted;
 
 Which can be used as following
 
-```csharp
+```cs
 ErrorOr<Deleted> DeleteUser(Guid id)
 {
     var user = await _userRepository.GetByIdAsync(id);
     if (user is null)
     {
-        return Error.NotFound(code: "User.NotFound", description: "User not found.");
+        return Error.NotFound(description: "User not found.");
     }
 
     await _userRepository.DeleteAsync(user);
@@ -599,19 +679,88 @@ ErrorOr<Deleted> DeleteUser(Guid id)
 }
 ```
 
-# How Is This Different From `OneOf<T0, T1>` or `FluentResults`?
+# Organizing Errors
 
-It's similar to the others, just aims to be more intuitive and fluent.
-If you find yourself typing `OneOf<User, DomainError>` or `Result.Fail<User>("failure")` again and again, you might enjoy the fluent API of `ErrorOr<User>` (and it's also faster).
+A nice approach, is creating a static class with the expected errors. For example:
 
-# Contribution
+```cs
+public static partial class DivisionErrors
+{
+    public static Error CannotDivideByZero = Error.Unexpected(
+        code: "Division.CannotDivideByZero",
+        description: "Cannot divide by zero.");
+}
+```
+
+Which can later be used as following 👇
+
+```cs
+public ErrorOr<float> Divide(int a, int b)
+{
+    if (b == 0)
+    {
+        return DivisionErrors.CannotDivideByZero;
+    }
+
+    return a / b;
+}
+```
+
+# [Mediator](https://github.com/jbogard/MediatR) + [FluentValidation](https://github.com/FluentValidation/FluentValidation) + `ErrorOr` 🤝
+
+A common approach when using `MediatR` is to use `FluentValidation` to validate the request before it reaches the handler.
+
+Usually, the validation is done using a `Behavior` that throws an exception if the request is invalid.
+
+Using `ErrorOr`, we can create a `Behavior` that returns an error instead of throwing an exception.
+
+This plays nicely when the project uses `ErrorOr`, as the layer invoking the `Mediator`, similar to other components in the project, simply receives an `ErrorOr` and can handle it accordingly.
+
+Here is an example of a `Behavior` that validates the request and returns an error if it's invalid 👇
+
+```cs
+public class ValidationBehavior<TRequest, TResponse>(IValidator<TRequest>? validator = null)
+    : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>
+        where TResponse : IErrorOr
+{
+    private readonly IValidator<TRequest>? _validator = validator;
+
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
+    {
+        if (_validator is null)
+        {
+            return await next();
+        }
+
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+
+        if (validationResult.IsValid)
+        {
+            return await next();
+        }
+
+        var errors = validationResult.Errors
+            .ConvertAll(error => Error.Validation(
+                code: error.PropertyName,
+                description: error.ErrorMessage));
+
+        return (dynamic)errors;
+    }
+}
+```
+
+# Contribution 🤲
 
 If you have any questions, comments, or suggestions, please open an issue or create a pull request 🙂
 
-# Credits
+# Credits 🙏
 
 - [OneOf](https://github.com/mcintyre321/OneOf/tree/master/OneOf) - An awesome library which provides F# style discriminated unions behavior for C#
 
-# License
+# License 🪪
 
 This project is licensed under the terms of the [MIT](https://github.com/mantinband/error-or/blob/main/LICENSE) license.
