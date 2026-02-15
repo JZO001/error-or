@@ -13,7 +13,7 @@
         <Product>Forge.ErrorOr: A simple, fluent discriminated union of an error or a result.</Product>
         <PackageId>Forge.ErrorOr</PackageId>
         <Version>2.0.1.1</Version>
-        <Authors>Amichai Mantinband</Authors>
+        <Authors>Amichai Mantinband and contributors</Authors>
         <PackageIcon>icon-square.png</PackageIcon>
         <PackageTags>Result,Results,ErrorOr,Error,Handling</PackageTags>
         <Description>A simple, fluent discriminated union of an error or a result.</Description>
