@@ -53,6 +53,9 @@ dotnet_diagnostic.CS1591.severity = none
 # SA1200: Using directive should appear within a namespace declaration.
 dotnet_diagnostic.SA1200.severity = none
 
+# SA1503: The opening and closing braces for a C# statement have been omitted.
+dotnet_diagnostic.SA1503.severity = none
+
 # IDE0008: Use explicit type
 csharp_style_var_when_type_is_apparent = true
 

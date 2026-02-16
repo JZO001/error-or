@@ -12,8 +12,8 @@
         <Title>Forge.ErrorOr: A simple, fluent discriminated union of an error or a result.</Title>
         <Product>Forge.ErrorOr: A simple, fluent discriminated union of an error or a result.</Product>
         <PackageId>Forge.ErrorOr</PackageId>
-        <Version>2.0.1.1</Version>
-        <Authors>Amichai Mantinband and contributors</Authors>
+        <Version>2.0.1.2</Version>
+        <Authors>Amichai Mantinband, Zoltan Juhasz and contributors</Authors>
         <PackageIcon>icon-square.png</PackageIcon>
         <PackageTags>Result,Results,ErrorOr,Error,Handling</PackageTags>
         <Description>A simple, fluent discriminated union of an error or a result.</Description>
@@ -30,12 +30,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="ErrorOr\ErrorOr.FailIfExtensions.Additionals.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Remove="ErrorOr.xml" />
     </ItemGroup>
 
     <ItemGroup>
         <None Include="../assets/icon-square.png" Pack="true" Visible="false" PackagePath="" />
         <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="ErrorOr\ErrorOr.FailIfExtensions.Additionals.cs" />
         <None Include="Stylecop.json" />
         <AdditionalFiles Include="Stylecop.json" />
     </ItemGroup>
