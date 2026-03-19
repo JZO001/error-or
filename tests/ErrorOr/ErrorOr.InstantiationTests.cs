@@ -348,16 +348,6 @@ public class ErrorOrInstantiationTests
     }
 
     [Fact]
-    public void CreateErrorOr_WhenUsingEmptyConstructor_ShouldThrow()
-    {
-        // Act
-        Func<ErrorOr<int>> action = () => new ErrorOr<int>();
-
-        // Assert
-        action.Should().ThrowExactly<InvalidOperationException>();
-    }
-
-    [Fact]
     public void CreateErrorOr_WhenEmptyErrorsList_ShouldThrow()
     {
         // Act
@@ -397,14 +387,5 @@ public class ErrorOrInstantiationTests
 
         act.Should().ThrowExactly<ArgumentNullException>()
            .And.ParamName.Should().Be("errors");
-    }
-
-    [Fact]
-    public void CreateErrorOr_WhenValueIsNull_ShouldThrowArgumentNullException()
-    {
-        Func<ErrorOr<int?>> act = () => default(int?);
-
-        act.Should().ThrowExactly<ArgumentNullException>()
-           .And.ParamName.Should().Be("value");
     }
 }
